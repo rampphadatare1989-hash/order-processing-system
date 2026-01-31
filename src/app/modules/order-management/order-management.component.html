@@ -1,0 +1,260 @@
+<div class="order-management-container">
+  <h1>Order Management</h1>
+
+  <!-- Filter Section -->
+  <div class="filter-section">
+    <h2>Filter Orders</h2>
+    
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Order ID:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="orderIdFilter" 
+          placeholder="Search by Order ID"
+          (change)="applyFilters()">
+      </div>
+
+      <div class="filter-group">
+        <label>Sales Order ID:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="salesOrderIdFilter" 
+          placeholder="Search by Sales Order ID"
+          (change)="applyFilters()">
+      </div>
+
+      <div class="filter-group">
+        <label>Job Card ID:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="jobCardIdFilter" 
+          placeholder="Search by Job Card ID"
+          (change)="applyFilters()">
+      </div>
+
+      <div class="filter-group">
+        <label>Status:</label>
+        <select [(ngModel)]="statusFilter" (change)="applyFilters()">
+          <option value="">-- All --</option>
+          <option *ngFor="let status of statusOptions" [value]="status">
+            {{ status }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Created Date From:</label>
+        <input 
+          type="date" 
+          [(ngModel)]="createdDateFromFilter"
+          (change)="applyFilters()">
+      </div>
+
+      <div class="filter-group">
+        <label>Created Date To:</label>
+        <input 
+          type="date" 
+          [(ngModel)]="createdDateToFilter"
+          (change)="applyFilters()">
+      </div>
+
+      <div class="filter-group">
+        <label>Completion Date From:</label>
+        <input 
+          type="date" 
+          [(ngModel)]="completionDateFromFilter"
+          (change)="applyFilters()">
+      </div>
+
+      <div class="filter-group">
+        <label>Completion Date To:</label>
+        <input 
+          type="date" 
+          [(ngModel)]="completionDateToFilter"
+          (change)="applyFilters()">
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn btn-primary" (click)="applyFilters()">Apply Filters</button>
+      <button class="btn btn-secondary" (click)="clearFilters()">Clear Filters</button>
+      <button class="btn btn-success" (click)="exportToCSV()">Export to CSV</button>
+    </div>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="orders-section">
+    <h2>Orders ({{ filteredOrders.length }})</h2>
+
+    <div class="table-container">
+      <table class="orders-table" *ngIf="getPaginatedOrders().length > 0; else noOrders">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Order #</th>
+            <th>Sales Order ID</th>
+            <th>Job Card ID</th>
+            <th>Product Type</th>
+            <th>Quantity</th>
+            <th>Created Date</th>
+            <th>Completion Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of getPaginatedOrders()">
+            <td>{{ order.id | slice:0:8 }}...</td>
+            <td>{{ order.orderNumber }}</td>
+            <td>{{ order.salesOrderId }}</td>
+            <td>{{ order.jobCardId }}</td>
+            <td>{{ order.itemDetails.productType || 'N/A' }}</td>
+            <td>{{ order.quantity }}</td>
+            <td>{{ safeDate(order.createdDate) | date:'short' }}</td>
+            <td>{{ safeDate(order.completionDate) ? (safeDate(order.completionDate) | date:'short') : '-' }}</td>
+            <td>
+              <span 
+                class="status-badge" 
+                [ngClass]="order.status.toLowerCase()"
+                [style.background-color]="getStatusColor(order.status)">
+                {{ order.status }}
+              </span>
+            </td>
+            <td class="action-buttons">
+              <button 
+                class="btn-small btn-info" 
+                (click)="viewOrderDetails(order)"
+                title="View Details">👁️
+              </button>
+              <button 
+                class="btn-small btn-edit" 
+                (click)="editOrderStatus(order)"
+                title="Edit Status">✏️
+              </button>
+              <button 
+                class="btn-small btn-delete" 
+                (click)="deleteOrder(order.id)"
+                title="Delete">🗑️
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #noOrders>
+        <div class="no-orders">
+          <p>No orders found matching your filters.</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button 
+        class="btn-pagination" 
+        (click)="prevPage()" 
+        [disabled]="currentPage === 1">
+        ← Previous
+      </button>
+      <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+      <button 
+        class="btn-pagination" 
+        (click)="nextPage()" 
+        [disabled]="currentPage === totalPages">
+        Next →
+      </button>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal" *ngIf="showDetailModal && selectedOrder" [@fadeInOut]>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Order Details</h3>
+        <button class="close-btn" (click)="closeDetailModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-group">
+          <label>Order ID:</label>
+          <span>{{ selectedOrder.id }}</span>
+        </div>
+        <div class="detail-group">
+          <label>Order Number:</label>
+          <span>{{ selectedOrder.orderNumber }}</span>
+        </div>
+        <div class="detail-group">
+          <label>Sales Order ID:</label>
+          <span>{{ selectedOrder.salesOrderId }}</span>
+        </div>
+        <div class="detail-group">
+          <label>Job Card ID:</label>
+          <span>{{ selectedOrder.jobCardId }}</span>
+        </div>
+        <div class="detail-group">
+          <label>Product Type:</label>
+          <span>{{ selectedOrder.itemDetails.productType || 'N/A' }}</span>
+        </div>
+        <div class="detail-group">
+          <label>Quantity:</label>
+          <span>{{ selectedOrder.quantity }}</span>
+        </div>
+        <div class="detail-group">
+          <label>Status:</label>
+          <span 
+            class="status-badge" 
+            [ngClass]="selectedOrder.status.toLowerCase()"
+            [style.background-color]="getStatusColor(selectedOrder.status)">
+            {{ selectedOrder.status }}
+          </span>
+        </div>
+        <div class="detail-group">
+          <label>Created Date:</label>
+          <span>{{ safeDate(selectedOrder.createdDate) | date:'medium' }}</span>
+        </div>
+        <div class="detail-group" *ngIf="safeDate(selectedOrder.completionDate)">
+          <label>Completion Date:</label>
+          <span>{{ safeDate(selectedOrder.completionDate) | date:'medium' }}</span>
+        </div>
+        <div class="detail-group" *ngIf="selectedOrder.remarks">
+          <label>Remarks:</label>
+          <span>{{ selectedOrder.remarks }}</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeDetailModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Status Modal -->
+  <div class="modal" *ngIf="showEditModal && selectedOrder" [@fadeInOut]>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Update Order Status</h3>
+        <button class="close-btn" (click)="closeEditModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>New Status:</label>
+          <select [(ngModel)]="selectedOrder.status">
+            <option *ngFor="let status of statusOptions" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button 
+          class="btn btn-primary" 
+          *ngIf="selectedOrder"
+          (click)="updateOrderStatus(selectedOrder.status)">
+          Update
+        </button>
+        <button class="btn btn-secondary" (click)="closeEditModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

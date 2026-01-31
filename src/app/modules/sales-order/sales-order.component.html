@@ -1,0 +1,190 @@
+<div class="sales-order-container">
+  <!-- Filter and Search Section -->
+  <div class="filter-section">
+    <div class="filter-row">
+      <div class="search-box">
+        <input 
+          type="text" 
+          placeholder="Search by Order ID, Sales Order #, or Customer Name..." 
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="applyFilters()"
+          class="search-input">
+      </div>
+      
+      <div class="status-filter">
+        <select 
+          [(ngModel)]="statusFilter"
+          (ngModelChange)="applyFilters()"
+          class="filter-select">
+          <option value="">All Statuses</option>
+          <option value="OPEN">Open</option>
+          <option value="PROCESSING">Processing</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="results-info">
+      Total Orders: {{ filteredSalesOrders.length }}
+    </div>
+  </div>
+
+  <!-- Sales Orders Grid -->
+  <div class="sales-orders-grid">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Sales Order ID</th>
+          <th>Sales Order #</th>
+          <th>Customer Name</th>
+          <th>Total Items</th>
+          <th>Status</th>
+          <th>Created Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of getPaginatedOrders()" 
+            class="order-row"
+            (click)="selectOrder(order)">
+          <td>{{ order.id }}</td>
+          <td>{{ order.salesOrderNumber }}</td>
+          <td>{{ order.customerName }}</td>
+          <td>{{ order.items.length }}</td>
+          <td>
+            <span class="status-badge" [style.backgroundColor]="getStatusColor(order.status)">
+              {{ order.status }}
+            </span>
+          </td>
+          <td>{{ order.createdDate | date: 'short' }}</td>
+          <td>
+            <button class="view-btn" (click)="selectOrder(order); $event.stopPropagation()">
+              View
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-section">
+    <button 
+      class="pagination-btn" 
+      (click)="previousPage()"
+      [disabled]="currentPage === 1">
+      Previous
+    </button>
+    
+    <span class="page-info">
+      Page {{ currentPage }} of {{ totalPages }}
+    </span>
+    
+    <button 
+      class="pagination-btn" 
+      (click)="nextPage()"
+      [disabled]="currentPage === totalPages">
+      Next
+    </button>
+  </div>
+
+  <!-- Order Details Modal -->
+  <div *ngIf="showDetails && selectedOrder" class="modal-overlay" (click)="closeDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Sales Order Details</h2>
+        <button class="close-btn" (click)="closeDetails()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Sales Order Info -->
+        <div class="section">
+          <h3>Sales Order Information</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Sales Order ID:</label>
+              <span>{{ selectedOrder.id }}</span>
+            </div>
+            <div class="info-item">
+              <label>Sales Order #:</label>
+              <span>{{ selectedOrder.salesOrderNumber }}</span>
+            </div>
+            <div class="info-item">
+              <label>Customer Name:</label>
+              <span>{{ selectedOrder.customerName }}</span>
+            </div>
+            <div class="info-item">
+              <label>Status:</label>
+              <span class="status-badge" [style.backgroundColor]="getStatusColor(selectedOrder.status)">
+                {{ selectedOrder.status }}
+              </span>
+            </div>
+            <div class="info-item">
+              <label>Created Date:</label>
+              <span>{{ selectedOrder.createdDate | date: 'medium' }}</span>
+            </div>
+            <div class="info-item">
+              <label>Total Items:</label>
+              <span>{{ selectedOrder.items.length }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Job Cards / Orders List -->
+        <div class="section">
+          <h3>Orders & Job Card Progress</h3>
+          <div class="job-cards-list">
+            <div *ngFor="let item of selectedOrder.items" class="job-card">
+              <div class="job-card-header">
+                <div class="job-card-title">
+                  <strong>Order #:</strong> {{ item.orderNumber }}
+                </div>
+                <div class="job-card-status">
+                  <span class="status-badge" [style.backgroundColor]="getStatusColor(item.status)">
+                    {{ item.status }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="job-card-details">
+                <div class="detail-row">
+                  <label>Product Type:</label>
+                  <span>{{ item.itemDetails.productType }}</span>
+                </div>
+                <div class="detail-row">
+                  <label>Quantity:</label>
+                  <span>{{ item.quantity }}</span>
+                </div>
+                <div class="detail-row">
+                  <label>Created:</label>
+                  <span>{{ item.createdDate | date: 'short' }}</span>
+                </div>
+                <div class="detail-row" *ngIf="item.completionDate">
+                  <label>Completed:</label>
+                  <span>{{ item.completionDate | date: 'short' }}</span>
+                </div>
+              </div>
+
+              <!-- Job Card Progress -->
+              <div class="progress-section">
+                <div class="progress-label">Order Progress</div>
+                <div class="progress-bar">
+                  <div class="progress-fill" 
+                       [style.width]="getProgressPercentage(item.status)"
+                       [style.backgroundColor]="getStatusColor(item.status)">
+                  </div>
+                </div>
+                <div class="progress-text">{{ getProgressPercentage(item.status) }} Complete</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="close-modal-btn" (click)="closeDetails()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

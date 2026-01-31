@@ -1,0 +1,356 @@
+<div class="order-creation-container">
+  <h1>Create New Order</h1>
+
+  <!-- Success Message -->
+  <div class="success-message" *ngIf="showSuccessMessage" [@fadeInOut]>
+    ✓ {{ successMessage }}
+  </div>
+
+  <!-- Tabs for Product Types -->
+  <div class="tabs-container">
+    <div class="tabs">
+      <button 
+        *ngFor="let productType of productTypes" 
+        [class.active]="activeTab === productType"
+        (click)="switchTab(productType)"
+        class="tab-button">
+        {{ productType }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Order Form -->
+  <form #orderForm="ngForm">
+    <div class="form-container">
+    <!-- Sales Order Info -->
+    <div class="form-section">
+      <h2>Order Information</h2>
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Sales Order ID *</label>
+          <input 
+            type="text" 
+            name="salesOrderId"
+            [(ngModel)]="salesOrderId" 
+            placeholder="e.g., SO-12345"
+            required>
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Quantity *</label>
+          <input 
+            type="number"
+            name="quantity" 
+            [(ngModel)]="quantity" 
+            min="1"
+            required>
+        </div>
+      </div>
+    </div>
+
+    <!-- General Information -->
+    <div class="form-section">
+      <h2>General Information</h2>
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Symag Part # *</label>
+          <input 
+            type="text" 
+            name="symagPartNo"
+            [(ngModel)]="currentOrder.general.symagPartNo"
+            placeholder="Internal part identification"
+            required>
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Customer Code</label>
+          <input 
+            type="text" 
+            name="customerCode"
+            [(ngModel)]="currentOrder.general.customerCode"
+            placeholder="Customer code">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Customer Part #</label>
+          <input 
+            type="text" 
+            name="customerPartNo"
+            [(ngModel)]="currentOrder.general.customerPartNo"
+            placeholder="Customer part number">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Part Weight (Net)</label>
+          <input 
+            type="number" 
+            name="partWeightNet"
+            [(ngModel)]="currentOrder.general.partWeightNet"
+            placeholder="Weight in standard units">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>MOQ</label>
+          <input 
+            type="number" 
+            name="moq"
+            [(ngModel)]="currentOrder.general.moq"
+            placeholder="Minimum order quantity">
+        </div>
+      </div>
+    </div>
+
+    <!-- Material and Dimensions -->
+    <div class="form-section">
+      <h2>Material and Dimensions</h2>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Material Type</label>
+          <input 
+            type="text" 
+            name="materialType"
+            [(ngModel)]="currentOrder.materialAndDimensions.materialType"
+            placeholder="e.g., Steel, Stainless Steel">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Material Spec</label>
+          <input 
+            type="text" 
+            name="mtlSpec"
+            [(ngModel)]="currentOrder.materialAndDimensions.mtlSpec"
+            placeholder="Material specification">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Wire Dia (mm)</label>
+          <input 
+            type="number" 
+            name="wireDiaValue"
+            [(ngModel)]="currentOrder.materialAndDimensions.wireDia!.value_mm"
+            placeholder="Diameter">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Wire Dia Tolerance (±mm)</label>
+          <input 
+            type="number" 
+            name="wireDiaTolerance"
+            [(ngModel)]="currentOrder.materialAndDimensions.wireDia!.tolerance_mm"
+            placeholder="Tolerance">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Outside Dia (mm)</label>
+          <input 
+            type="number" 
+            name="outsideDiaValue"
+            [(ngModel)]="currentOrder.materialAndDimensions.outsideDia!.value_mm"
+            placeholder="Diameter">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Outside Dia Tolerance (±mm)</label>
+          <input 
+            type="number" 
+            name="outsideDiaTolerance"
+            [(ngModel)]="currentOrder.materialAndDimensions.outsideDia!.tolerance_mm"
+            placeholder="Tolerance">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Free Length (mm)</label>
+          <input 
+            type="number" 
+            name="freeLengthValue"
+            [(ngModel)]="currentOrder.materialAndDimensions.freeLength!.value_mm"
+            placeholder="Length">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Free Length Tolerance (±mm)</label>
+          <input 
+            type="number" 
+            name="freeLengthTolerance"
+            [(ngModel)]="currentOrder.materialAndDimensions.freeLength!.tolerance_mm"
+            placeholder="Tolerance">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Total Coils</label>
+          <input 
+            type="number" 
+            name="totalCoils"
+            [(ngModel)]="currentOrder.materialAndDimensions.totalCoils"
+            placeholder="Number of coils">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Active Coils</label>
+          <input 
+            type="number" 
+            name="activeCoils"
+            [(ngModel)]="currentOrder.materialAndDimensions.activeCoils"
+            placeholder="Number of active coils">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Pitch (mm)</label>
+          <input 
+            type="number" 
+            name="pitch"
+            [(ngModel)]="currentOrder.materialAndDimensions.pitch_mm"
+            placeholder="Pitch distance">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Helix</label>
+          <select name="helix" [(ngModel)]="currentOrder.materialAndDimensions.helix">
+            <option value="">-- Select --</option>
+            <option *ngFor="let helix of helixOptions" [value]="helix">
+              {{ helix }}
+            </option>
+          </select>
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Configuration</label>
+          <input 
+            type="text" 
+            name="configuration"
+            [(ngModel)]="currentOrder.materialAndDimensions.configuration"
+            placeholder="Configuration type">
+        </div>
+      </div>
+    </div>
+
+    <!-- Loads, Rates & Deflection -->
+    <div class="form-section">
+      <h2>Loads, Rates & Deflection</h2>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Spring Rate (N/mm)</label>
+          <input 
+            type="number" 
+            name="springRateValue"
+            [(ngModel)]="currentOrder.loadsRatesDeflection.springRate!.value_N_per_mm"
+            placeholder="Spring rate value">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Spring Rate Tolerance (±N/mm)</label>
+          <input 
+            type="number" 
+            name="springRateTolerance"
+            [(ngModel)]="currentOrder.loadsRatesDeflection.springRate!.tolerance_N_per_mm"
+            placeholder="Tolerance">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Load 1 (N)</label>
+          <input 
+            type="number" 
+            name="load1"
+            [(ngModel)]="currentOrder.loadsRatesDeflection.load1_N"
+            placeholder="Load value">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Length at Load 1 (mm)</label>
+          <input 
+            type="number" 
+            name="lengthAtLoad1"
+            [(ngModel)]="currentOrder.loadsRatesDeflection.lengthAtLoad1_mm"
+            placeholder="Length">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Deflection at Load 1 (mm)</label>
+          <input 
+            type="number" 
+            name="deflectionAtLoad1"
+            [(ngModel)]="currentOrder.loadsRatesDeflection.deflectionAtLoad1_mm"
+            placeholder="Deflection">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Load 2 (N)</label>
+          <input 
+            type="number" 
+            name="load2"
+            [(ngModel)]="currentOrder.loadsRatesDeflection.load2_N"
+            placeholder="Load value">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Length at Load 2 (mm)</label>
+          <input 
+            type="number" 
+            name="lengthAtLoad2"
+            [(ngModel)]="currentOrder.loadsRatesDeflection.lengthAtLoad2_mm"
+            placeholder="Length">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Deflection at Load 2 (mm)</label>
+          <input 
+            type="number" 
+            name="deflectionAtLoad2"
+            [(ngModel)]="currentOrder.loadsRatesDeflection.deflectionAtLoad2_mm"
+            placeholder="Deflection">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Operating Temp (°C)</label>
+          <input 
+            type="number" 
+            name="operatingTemp"
+            [(ngModel)]="currentOrder.loadsRatesDeflection.operatingTemp_C"
+            placeholder="Temperature">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Cycles</label>
+          <input 
+            type="number" 
+            name="cycles"
+            [(ngModel)]="currentOrder.loadsRatesDeflection.cycles"
+            placeholder="Number of cycles">
+        </div>
+        <div class="form-group" style="flex: 1">
+          <label>Surface Treatment</label>
+          <select name="surfaceTreatment" [(ngModel)]="currentOrder.loadsRatesDeflection.surfaceTreatment">
+            <option value="">-- Select --</option>
+            <option *ngFor="let treatment of surfaceTreatmentOptions" [value]="treatment">
+              {{ treatment }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="flex: 1">
+          <label>Remarks</label>
+          <textarea 
+            name="remarks"
+            [(ngModel)]="currentOrder.loadsRatesDeflection.remark"
+            placeholder="Additional remarks"
+            rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button class="btn btn-primary btn-large" (click)="submitOrder()">Create Order</button>
+      <button class="btn btn-secondary btn-large" (click)="resetForm()">Reset Form</button>
+    </div>
+    </div>
+  </form>
+</div>

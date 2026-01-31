@@ -1,0 +1,218 @@
+<div class="sales-order-master-container">
+  <div class="header-section">
+    <h1>📋 Sales Orders</h1>
+    <p class="header-subtitle">Manage all your sales orders in one place</p>
+    <button class="action-btn primary" (click)="createNewOrder()">✓ Create New Sales Order</button>
+  </div>
+
+  <div class="master-content">
+    <!-- Search and Filter Section -->
+    <div class="search-filter-section">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (ngModelChange)="onSearch()" 
+          class="search-input" 
+          placeholder="🔎 Search by Sales Order ID or Customer Name...">
+      </div>
+      <div class="filter-controls">
+        <select [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()" class="filter-select">
+          <option value="">All Status</option>
+          <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+        </select>
+        <select [(ngModel)]="sortBy" (ngModelChange)="onSortChange()" class="filter-select">
+          <option value="createdDate">Created Date</option>
+          <option value="salesOrderId">Sales Order ID</option>
+          <option value="customerName">Customer Name</option>
+          <option value="totalAmount">Total Amount</option>
+          <option value="status">Status</option>
+        </select>
+        <button class="action-btn secondary" (click)="toggleSortOrder()">
+          {{ sortOrder === 'asc' ? '↑ Asc' : '↓ Desc' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-spinner">
+      <p>Loading sales orders...</p>
+    </div>
+
+    <!-- Sales Orders Table -->
+    <div *ngIf="!isLoading && filteredSalesOrders.length > 0" class="table-container">
+      <table class="sales-orders-table">
+        <thead>
+          <tr>
+            <th>Sales Order ID</th>
+            <th>Customer Name</th>
+            <th>Created Date</th>
+            <th>Target Date</th>
+            <th>Items</th>
+            <th>Total Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of filteredSalesOrders">
+            <td class="order-id">{{ order.salesOrderId }}</td>
+            <td>{{ order.customerName }}</td>
+            <td>{{ formatDate(order.createdDate) }}</td>
+            <td>{{ formatDate(order.completionTargetDate) }}</td>
+            <td class="items-count">{{ order.items.length || 0 }}</td>
+            <td class="amount">Rs. {{ order.totalAmount | number:'1.2-2' }}</td>
+            <td>
+              <span class="status-badge" [style.backgroundColor]="getStatusColor(order.status)">
+                {{ order.status }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button class="action-btn small primary" (click)="viewOrder(order)" title="View">
+                👁️
+              </button>
+              <button class="action-btn small secondary" (click)="editOrder(order)" title="Edit">
+                ✎
+              </button>
+              <button class="action-btn small danger" (click)="confirmDelete(order)" title="Delete">
+                🗑️
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && filteredSalesOrders.length === 0" class="empty-state">
+      <p>📭 No sales orders found.</p>
+      <button class="action-btn primary" (click)="createNewOrder()">Create Your First Sales Order</button>
+    </div>
+  </div>
+
+  <!-- View Order Modal -->
+  <div *ngIf="showViewModal && selectedOrder" class="modal-overlay" (click)="closeViewModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>📖 Sales Order Details</h2>
+        <button class="close-btn action-btn danger" (click)="closeViewModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="order-details">
+          <div class="detail-row">
+            <div class="detail-group">
+              <label>Sales Order ID</label>
+              <p>{{ selectedOrder.salesOrderId }}</p>
+            </div>
+            <div class="detail-group">
+              <label>Customer Name</label>
+              <p>{{ selectedOrder.customerName }}</p>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-group">
+              <label>Customer ID</label>
+              <p>{{ selectedOrder.customerId || '-' }}</p>
+            </div>
+            <div class="detail-group">
+              <label>Status</label>
+              <p>
+                <span class="status-badge" [style.backgroundColor]="getStatusColor(selectedOrder.status)">
+                  {{ selectedOrder.status }}
+                </span>
+              </p>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-group">
+              <label>Created Date</label>
+              <p>{{ formatDate(selectedOrder.createdDate) }}</p>
+            </div>
+            <div class="detail-group">
+              <label>Target Date</label>
+              <p>{{ formatDate(selectedOrder.completionTargetDate) }}</p>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-group">
+              <label>Total Amount</label>
+              <p class="amount-highlight">Rs. {{ selectedOrder.totalAmount | number:'1.2-2' }}</p>
+            </div>
+            <div class="detail-group">
+              <label>Items Count</label>
+              <p>{{ selectedOrder.items.length || 0 }} products</p>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-group full-width">
+              <label>Remarks</label>
+              <p>{{ selectedOrder.remarks || '-' }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="selectedOrder.items && selectedOrder.items.length > 0" class="items-section">
+            <h3>Order Items</h3>
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Item No</th>
+                  <th>Product</th>
+                  <th>Qty</th>
+                  <th>Job Card</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of selectedOrder.items" class="clickable-row" (click)="viewJobCardDetail(item)" title="Click to view job card details">
+                  <td>{{ item.itemSerialNo }}</td>
+                  <td>{{ item.productName }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td class="job-card">{{ item.jobCardNumber }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn secondary" (click)="closeViewModal()">Close</button>
+        <button class="action-btn primary" (click)="editOrder(selectedOrder); closeViewModal()">Edit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteConfirm && orderToDelete" class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-content small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>⚠️ Confirm Delete</h2>
+        <button class="close-btn action-btn danger" (click)="cancelDelete()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this sales order?</p>
+        <p class="order-info"><strong>Order ID:</strong> {{ orderToDelete.salesOrderId }}</p>
+        <p class="order-info"><strong>Customer:</strong> {{ orderToDelete.customerName }}</p>
+        <p class="warning">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn secondary" (click)="cancelDelete()">Cancel</button>
+        <button class="action-btn danger" (click)="deleteSalesOrder()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Job Card Detail Modal -->
+  <div *ngIf="showJobCardDetail && selectedOrderItem" class="modal-overlay" (click)="closeJobCardDetail()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>🏷️ Job Card Details</h2>
+        <button class="close-btn action-btn danger" (click)="closeJobCardDetail()">✕</button>
+      </div>
+      <div class="modal-body">
+        <app-job-card-detail [item]="selectedOrderItem"></app-job-card-detail>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn secondary" (click)="closeJobCardDetail()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

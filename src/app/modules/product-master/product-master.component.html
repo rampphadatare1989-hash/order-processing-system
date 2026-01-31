@@ -1,0 +1,680 @@
+<div class="product-master-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h1>Product Master</h1>
+    <button class="btn-primary" (click)="openCreateModal()">+ Add New Product</button>
+  </div>
+
+  <!-- Filter and Search Section -->
+  <div class="filter-section">
+    <div class="filter-row">
+      <div class="search-box">
+        <input 
+          type="text" 
+          placeholder="Search by Product Name or Part Number..." 
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="applyFilters()"
+          class="search-input">
+      </div>
+      
+      <div class="filter-group">
+        <select 
+          [(ngModel)]="statusFilter"
+          (ngModelChange)="applyFilters()"
+          class="filter-select">
+          <option value="">All Statuses</option>
+          <option *ngFor="let status of productStatuses" [value]="status">{{ status }}</option>
+        </select>
+
+        <select 
+          [(ngModel)]="typeFilter"
+          (ngModelChange)="applyFilters()"
+          class="filter-select">
+          <option value="">All Product Types</option>
+          <option *ngFor="let type of productTypes" [value]="type">{{ getProductTypeFullName(type) }}</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="results-info">
+      Total Products: {{ filteredProducts.length }}
+    </div>
+  </div>
+
+  <!-- Products Grid/Table -->
+  <div class="products-grid">
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th>Product Name</th>
+          <th>Part Number</th>
+          <th>Product Type</th>
+          <th>Material</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of getPaginatedProducts()" class="product-row">
+          <td>{{ product.productName }}</td>
+          <td>{{ product.general.symagPartNo }}</td>
+          <td>{{ getProductTypeFullName(product.productType) }}</td>
+          <td>{{ product.materialAndDimensions.materialType || 'N/A' }}</td>
+          <td>
+            <span class="status-badge" [style.backgroundColor]="getStatusColor(product.status)">
+              {{ product.status }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-secondary" (click)="viewDetails(product)" title="View Details">View</button>
+              <button class="btn-warning" (click)="openEditModal(product)" title="Edit Product">Edit</button>
+              <button class="btn-danger" (click)="deleteProduct(product)" title="Delete Product">Delete</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="getPaginatedProducts().length === 0" class="no-data">
+      <p>No products found</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-section">
+    <button 
+      class="pagination-btn" 
+      (click)="previousPage()"
+      [disabled]="currentPage === 1">
+      Previous
+    </button>
+    
+    <span class="page-info">
+      Page {{ currentPage }} of {{ totalPages }}
+    </span>
+    
+    <button 
+      class="pagination-btn" 
+      (click)="nextPage()"
+      [disabled]="currentPage === totalPages">
+      Next
+    </button>
+  </div>
+
+  <!-- Product Form Modal -->
+  <div *ngIf="showProductModal" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content large-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditMode ? 'Edit Product' : 'Add New Product' }}</h2>
+        <button class="close-btn" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="productForm" class="product-form">
+          
+          <!-- Product Type and Name Header -->
+          <div class="form-header-section">
+            <div class="header-title">
+              <h3 id="form-title">{{ productForm.get('productType')?.value ? getProductTypeFullName(productForm.get('productType')?.value) + ' Data' : 'Product Data' }}</h3>
+            </div>
+          </div>
+
+          <!-- Product Type Selector -->
+          <div class="product-type-selector">
+            <div class="form-group">
+              <label>Product Type *</label>
+              <select formControlName="productType" (change)="onProductTypeChange()" class="form-input type-select">
+                <option *ngFor="let type of productTypes" [value]="type">
+                  {{ getProductTypeFullName(type) }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Product Name *</label>
+              <input type="text" formControlName="productName" class="form-input" placeholder="Enter product name">
+            </div>
+            <div class="form-group">
+              <label>Status</label>
+              <select formControlName="status" class="form-input">
+                <option *ngFor="let status of productStatuses" [value]="status">{{ status }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Product Images Upload -->
+          <div class="form-group">
+            <label>Product Images (max 6)</label>
+            <input type="file" accept="image/*" multiple (change)="onImageSelect($event)" [disabled]="productImages.length >= 6">
+            <div class="image-preview-list">
+              <div class="image-preview" *ngFor="let img of productImages; let i = index">
+                <img [src]="img" alt="Product Image {{i+1}}" />
+                <button type="button" class="remove-image-btn" (click)="removeImage(i)">✕</button>
+              </div>
+            </div>
+            <div class="image-upload-hint" *ngIf="productImages.length >= 6">
+              Maximum 6 images allowed.
+            </div>
+          </div>
+
+          <!-- Main Form Sections -->
+          <div class="form-sections-container">
+            
+            <!-- Part Information Section -->
+            <div formGroupName="general" class="form-section">
+              <div class="section-title">Part Information</div>
+              <div class="section-content">
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label>Part Weight (Net)</label>
+                    <input type="number" formControlName="partWeightNet" class="form-input" placeholder="kg">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Customer Code</label>
+                    <input type="text" formControlName="customerCode" class="form-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Customer Part #</label>
+                    <input type="text" formControlName="customerPartNo" class="form-input">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Customer Part Name #</label>
+                    <input type="text" formControlName="customerPartNameNo" class="form-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Symag Part Number *</label>
+                    <input type="text" formControlName="symagPartNo" class="form-input">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label>MOQ</label>
+                    <input type="number" formControlName="moq" class="form-input">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Material and Basic Dimensions Section -->
+            <div formGroupName="materialAndDimensions" class="form-section">
+              <div class="section-title">Material and Basic Dimensions</div>
+              <div class="section-content">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Material Type</label>
+                    <input type="text" formControlName="materialType" class="form-input" placeholder="e.g., Steel">
+                  </div>
+                  <div class="form-group">
+                    <label>Mtl. Spec.</label>
+                    <input type="text" formControlName="mtlSpec" class="form-input" placeholder="e.g., SAE 1070">
+                  </div>
+                </div>
+
+                <!-- Wire Diameter Row -->
+                <div class="dimension-section">
+                  <div class="dim-row">
+                    <label class="dim-label">Wire Dia</label>
+                    <div class="dim-inputs">
+                      <input type="number" formControlName="wireDia_value" class="form-input dim-value" placeholder="MM">
+                      <span class="tolerance-label">MUL Spec.</span>
+                      <input type="text" formControlName="wireDia_tolerance" class="form-input dim-tolerance" placeholder="(+/-)">
+                      <span class="tolerance-label">MM</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Outside Diameter Row -->
+                <div class="dimension-section">
+                  <div class="dim-row">
+                    <label class="dim-label">Outside Dia</label>
+                    <div class="dim-inputs">
+                      <input type="number" formControlName="outsideDia_value" class="form-input dim-value" placeholder="MM">
+                      <span class="tolerance-label">MUL Spec.</span>
+                      <input type="text" formControlName="outsideDia_tolerance" class="form-input dim-tolerance" placeholder="(+/-)">
+                      <span class="tolerance-label">MM</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Big Outside Dia (CCS only) -->
+                <div *ngIf="productForm.get('productType')?.value === 'CCS'" class="dimension-section">
+                  <div class="dim-row">
+                    <label class="dim-label">Big Outside Dia</label>
+                    <div class="dim-inputs">
+                      <input type="number" formControlName="bigOutsideDia_value" class="form-input dim-value" placeholder="MM">
+                      <span class="tolerance-label">MUL Spec.</span>
+                      <input type="text" formControlName="bigOutsideDia_tolerance" class="form-input dim-tolerance" placeholder="(+/-)">
+                      <span class="tolerance-label">MM</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Small Outside Dia (CCS only) -->
+                <div *ngIf="productForm.get('productType')?.value === 'CCS'" class="dimension-section">
+                  <div class="dim-row">
+                    <label class="dim-label">Small Outside Dia</label>
+                    <div class="dim-inputs">
+                      <input type="number" formControlName="smallOutsideDia_value" class="form-input dim-value" placeholder="MM">
+                      <span class="tolerance-label">MUL Spec.</span>
+                      <input type="text" formControlName="smallOutsideDia_tolerance" class="form-input dim-tolerance" placeholder="(+/-)">
+                      <span class="tolerance-label">MM</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Big Inside Dia (CCS only) -->
+                <div *ngIf="productForm.get('productType')?.value === 'CCS'" class="dimension-section">
+                  <div class="dim-row">
+                    <label class="dim-label">Big Inside Dia</label>
+                    <div class="dim-inputs">
+                      <input type="number" formControlName="bigInsideDia_value" class="form-input dim-value" placeholder="MM">
+                      <span class="tolerance-label">MUL Spec.</span>
+                      <input type="text" formControlName="bigInsideDia_tolerance" class="form-input dim-tolerance" placeholder="(+/-)">
+                      <span class="tolerance-label">MM</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Small Inside Dia (CCS only) -->
+                <div *ngIf="productForm.get('productType')?.value === 'CCS'" class="dimension-section">
+                  <div class="dim-row">
+                    <label class="dim-label">Small Inside Dia</label>
+                    <div class="dim-inputs">
+                      <input type="number" formControlName="smallInsideDia_value" class="form-input dim-value" placeholder="MM">
+                      <span class="tolerance-label">MUL Spec.</span>
+                      <input type="text" formControlName="smallInsideDia_tolerance" class="form-input dim-tolerance" placeholder="(+/-)">
+                      <span class="tolerance-label">MM</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Mean Dia (for applicable types) -->
+                <div *ngIf="['CS', 'TS', 'DTS', 'WF', 'PP'].includes(productForm.get('productType')?.value)" class="dimension-section">
+                  <div class="dim-row">
+                    <label class="dim-label">Mean Dia</label>
+                    <div class="dim-inputs">
+                      <input type="number" formControlName="meanDia_value" class="form-input dim-value" placeholder="MM">
+                      <span class="tolerance-label">MUL Spec.</span>
+                      <input type="text" formControlName="meanDia_tolerance" class="form-input dim-tolerance" placeholder="(+/-)">
+                      <span class="tolerance-label">MM</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Inside Dia (for applicable types) -->
+                <div *ngIf="['ES', 'WF', 'PP'].includes(productForm.get('productType')?.value)" class="dimension-section">
+                  <div class="dim-row">
+                    <label class="dim-label">Inside Dia</label>
+                    <div class="dim-inputs">
+                      <input type="number" formControlName="insideDia_value" class="form-input dim-value" placeholder="MM">
+                      <span class="tolerance-label">MUL Spec.</span>
+                      <input type="text" formControlName="insideDia_tolerance" class="form-input dim-tolerance" placeholder="(+/-)">
+                      <span class="tolerance-label">MM</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Free Length -->
+                <div class="dimension-section">
+                  <div class="dim-row">
+                    <label class="dim-label">Free Length{{ productForm.get('productType')?.value === 'ES' ? ' (inside hook)' : '' }}</label>
+                    <div class="dim-inputs">
+                      <input type="number" formControlName="freeLength_value" class="form-input dim-value" placeholder="MM">
+                      <span class="tolerance-label">MUL Spec.</span>
+                      <input type="text" formControlName="freeLength_tolerance" class="form-input dim-tolerance" placeholder="(+/-)">
+                      <span class="tolerance-label">MM</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Configuration Subsection -->
+                <div class="subsection-title">Configuration</div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Total Coils</label>
+                    <input type="number" formControlName="totalCoils" class="form-input" placeholder="RHS/LHS">
+                  </div>
+                  <div class="form-group">
+                    <label>Helix</label>
+                    <select formControlName="helix" class="form-input">
+                      <option value="">Select...</option>
+                      <option value="RHS">RHS</option>
+                      <option value="LHS">LHS</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>End Type (GRIND)</label>
+                    <input type="text" formControlName="endType" class="form-input">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Active Coils</label>
+                    <input type="number" formControlName="activeCoils" class="form-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Pitch</label>
+                    <input type="number" formControlName="pitch_mm" class="form-input" placeholder="MM">
+                  </div>
+                  <div class="form-group">
+                    <label>Preset</label>
+                    <select formControlName="preset" class="form-input">
+                      <option [value]="false">N</option>
+                      <option [value]="true">Y</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Hook Type (ES only) -->
+                <div *ngIf="productForm.get('productType')?.value === 'ES'" class="form-row">
+                  <div class="form-group">
+                    <label>Hook Type</label>
+                    <input type="text" formControlName="hookType" class="form-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Orientation (example)</label>
+                    <input type="text" formControlName="orientation" class="form-input">
+                  </div>
+                </div>
+
+                <!-- Works Inside / Over and Heat Treat -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Works Inside - Hole Dia</label>
+                    <input type="number" formControlName="worksInside_holeDia" class="form-input" placeholder="Hole Dia">
+                  </div>
+                  <div class="form-group">
+                    <label>Works Over - Shaft Dia</label>
+                    <input type="number" formControlName="worksOver_shaftDia" class="form-input" placeholder="Shaft Dia">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Heat Treat - Degree (°C)</label>
+                    <input type="number" formControlName="heatTreat_degree_C" class="form-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Heat Treat - Time (Minutes)</label>
+                    <input type="number" formControlName="heatTreat_time_min" class="form-input">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Loads - Rates - Deflection Section -->
+            <div formGroupName="loadsRatesDeflection" class="form-section">
+              <div class="section-title">Loads - Rates - Deflection</div>
+              <div class="section-content">
+                
+                <!-- Spring Rate -->
+                <div class="dimension-section">
+                  <div class="dim-row">
+                    <label class="dim-label">Spring Rate</label>
+                    <div class="dim-inputs">
+                      <input type="number" formControlName="springRate_value" class="form-input dim-value" placeholder="N/MM">
+                      <span class="tolerance-label">(+/-)</span>
+                      <input type="text" formControlName="springRate_tolerance" class="form-input dim-tolerance" placeholder="N/MM">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Load 1 -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Length at Load 1</label>
+                    <input type="number" formControlName="lengthAtLoad1_mm" class="form-input" placeholder="Load 1">
+                  </div>
+                  <div class="form-group">
+                    <label></label>
+                    <input type="number" formControlName="load1_N" class="form-input" placeholder="Newton">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label>Deflection at Load 1</label>
+                    <input type="number" formControlName="deflectionAtLoad1_mm" class="form-input" placeholder="MM">
+                  </div>
+                </div>
+
+                <!-- Load 2 -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Length at Load 2</label>
+                    <input type="number" formControlName="lengthAtLoad2_mm" class="form-input" placeholder="Load 2">
+                  </div>
+                  <div class="form-group">
+                    <label></label>
+                    <input type="number" formControlName="load2_N" class="form-input" placeholder="Newton">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label>Deflection at Load 2</label>
+                    <input type="number" formControlName="deflectionAtLoad2_mm" class="form-input" placeholder="MM">
+                  </div>
+                </div>
+
+                <!-- Solid Height -->
+                <div class="dimension-section">
+                  <div class="dim-row">
+                    <label class="dim-label">Solid Height</label>
+                    <div class="dim-inputs">
+                      <input type="number" formControlName="solidHeight_value" class="form-input dim-value" placeholder="MM">
+                      <span class="tolerance-label">(+/-)</span>
+                      <input type="text" formControlName="solidHeight_tolerance" class="form-input dim-tolerance" placeholder="MM">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Operating Conditions -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Operating Temp (°C)</label>
+                    <input type="number" formControlName="operatingTemp_C" class="form-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Cycles</label>
+                    <input type="number" formControlName="cycles" class="form-input">
+                  </div>
+                </div>
+
+                <!-- Surface Treatment -->
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label>Surface Treatment (Zinc / Nickle / Powder Coating / EP)</label>
+                    <select formControlName="surfaceTreatment" class="form-input">
+                      <option *ngFor="let treatment of surfaceTreatments" [value]="treatment">{{ treatment }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Remarks and metadata -->
+                <div class="form-row">
+                  <div class="form-group full-width">
+                    <label>Remark</label>
+                    <textarea formControlName="remark" class="form-input textarea" rows="3" placeholder="Enter remarks..."></textarea>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" formControlName="date" class="form-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Prep By</label>
+                    <input type="text" formControlName="prepBy" class="form-input">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModal()">Cancel</button>
+        <button class="btn-primary" (click)="saveProduct()" [disabled]="!productForm.valid">
+          {{ isEditMode ? 'Update Product' : 'Create Product' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Details Modal -->
+  <div *ngIf="showDetails && selectedProduct" class="modal-overlay" (click)="closeDetails()">
+    <div class="modal-content large-modal details-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="header-left">
+          <h2 class="title">{{ selectedProduct.productName }}</h2>
+          <div class="subtitle">{{ getProductTypeFullName(selectedProduct.productType) }} • <span class="status-badge" [style.backgroundColor]="getStatusColor(selectedProduct.status)">{{ selectedProduct.status }}</span></div>
+        </div>
+        <div class="header-right">
+          <button class="btn-print" (click)="printToPDF()" title="Print to PDF">🖨️ Print PDF</button>
+          <button class="close-btn" (click)="closeDetails()">✕</button>
+        </div>
+      </div>
+
+      <div class="modal-body details-body" #detailsContent id="details-print">
+        <div class="details-grid">
+          <!-- Left summary card -->
+          <aside class="summary-card">
+            <h3 class="card-title">Summary</h3>
+            <div class="kv">
+              <div class="k">Symag Part No</div>
+              <div class="v">{{ selectedProduct.general.symagPartNo || '—' }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Part Weight (Net)</div>
+              <div class="v">{{ selectedProduct.general.partWeightNet ? (selectedProduct.general.partWeightNet + ' kg') : '—' }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Material</div>
+              <div class="v">{{ selectedProduct.materialAndDimensions.materialType || '—' }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Material Spec</div>
+              <div class="v">{{ selectedProduct.materialAndDimensions.mtlSpec || '—' }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">MOQ</div>
+              <div class="v">{{ selectedProduct.general.moq || '—' }}</div>
+            </div>
+            <hr>
+            <h4 class="card-sub">Configuration</h4>
+            <div class="kv small">
+              <div class="k">Total Coils</div>
+              <div class="v">{{ selectedProduct.materialAndDimensions.totalCoils || '—' }}</div>
+            </div>
+            <div class="kv small">
+              <div class="k">Helix</div>
+              <div class="v">{{ selectedProduct.materialAndDimensions.helix || '—' }}</div>
+            </div>
+            <div class="kv small">
+              <div class="k">Preset</div>
+              <div class="v">{{ selectedProduct.materialAndDimensions.preset ? 'Yes' : 'No' }}</div>
+            </div>
+          </aside>
+
+          <!-- Right detailed sections -->
+          <section class="details-column">
+            <div class="detail-card">
+              <h4 class="section-title">Dimensions</h4>
+              <div class="detail-grid two-cols">
+                <ng-container *ngIf="selectedProduct.materialAndDimensions.wireDia">
+                  <div class="detail-item"><span class="label">Wire Dia</span><span class="value">{{ selectedProduct.materialAndDimensions.wireDia.value_mm }} ± {{ selectedProduct.materialAndDimensions.wireDia.tolerance_mm }} mm</span></div>
+                </ng-container>
+                <ng-container *ngIf="selectedProduct.materialAndDimensions.outsideDia">
+                  <div class="detail-item"><span class="label">Outside Dia</span><span class="value">{{ selectedProduct.materialAndDimensions.outsideDia.value_mm }} ± {{ selectedProduct.materialAndDimensions.outsideDia.tolerance_mm }} mm</span></div>
+                </ng-container>
+                <ng-container *ngIf="selectedProduct.materialAndDimensions.meanDia">
+                  <div class="detail-item"><span class="label">Mean Dia</span><span class="value">{{ selectedProduct.materialAndDimensions.meanDia.value_mm }} ± {{ selectedProduct.materialAndDimensions.meanDia.tolerance_mm }} mm</span></div>
+                </ng-container>
+                <ng-container *ngIf="selectedProduct.materialAndDimensions.insideDia">
+                  <div class="detail-item"><span class="label">Inside Dia</span><span class="value">{{ selectedProduct.materialAndDimensions.insideDia.value_mm }} ± {{ selectedProduct.materialAndDimensions.insideDia.tolerance_mm }} mm</span></div>
+                </ng-container>
+                <ng-container *ngIf="selectedProduct.materialAndDimensions.freeLength">
+                  <div class="detail-item"><span class="label">Free Length</span><span class="value">{{ selectedProduct.materialAndDimensions.freeLength.value_mm }} ± {{ selectedProduct.materialAndDimensions.freeLength.tolerance_mm }} mm</span></div>
+                </ng-container>
+                <ng-container *ngIf="selectedProduct.materialAndDimensions.bigOutsideDia">
+                  <div class="detail-item"><span class="label">Big Outside Dia</span><span class="value">{{ selectedProduct.materialAndDimensions.bigOutsideDia.value_mm }} ± {{ selectedProduct.materialAndDimensions.bigOutsideDia.tolerance_mm }} mm</span></div>
+                </ng-container>
+                <ng-container *ngIf="selectedProduct.materialAndDimensions.smallOutsideDia">
+                  <div class="detail-item"><span class="label">Small Outside Dia</span><span class="value">{{ selectedProduct.materialAndDimensions.smallOutsideDia.value_mm }} ± {{ selectedProduct.materialAndDimensions.smallOutsideDia.tolerance_mm }} mm</span></div>
+                </ng-container>
+              </div>
+            </div>
+
+            <div class="detail-card">
+              <h4 class="section-title">Works & Heat Treatment</h4>
+              <div class="detail-grid two-cols">
+                <div *ngIf="selectedProduct.materialAndDimensions.worksInside" class="detail-item"><span class="label">Works Inside - Hole Dia</span><span class="value">{{ selectedProduct.materialAndDimensions.worksInside.holeDia_mm || '—' }} mm</span></div>
+                <div *ngIf="selectedProduct.materialAndDimensions.worksOver" class="detail-item"><span class="label">Works Over - Shaft Dia</span><span class="value">{{ selectedProduct.materialAndDimensions.worksOver.shaftDia_mm || '—' }} mm</span></div>
+                <div *ngIf="selectedProduct.materialAndDimensions.heatTreat" class="detail-item"><span class="label">Heat Treat (°C)</span><span class="value">{{ selectedProduct.materialAndDimensions.heatTreat.degree_C || '—' }}</span></div>
+                <div *ngIf="selectedProduct.materialAndDimensions.heatTreat" class="detail-item"><span class="label">Heat Treat Time (min)</span><span class="value">{{ selectedProduct.materialAndDimensions.heatTreat.time_min || '—' }}</span></div>
+              </div>
+            </div>
+
+            <div class="detail-card">
+              <h4 class="section-title">Loads · Rates · Deflection</h4>
+              <div class="detail-grid two-cols">
+                <div *ngIf="selectedProduct.loadsRatesDeflection.springRate" class="detail-item"><span class="label">Spring Rate</span><span class="value">{{ selectedProduct.loadsRatesDeflection.springRate.value_N_per_mm }} ± {{ selectedProduct.loadsRatesDeflection.springRate.tolerance_N_per_mm }} N/mm</span></div>
+                <div *ngIf="selectedProduct.loadsRatesDeflection.solidHeight" class="detail-item"><span class="label">Solid Height</span><span class="value">{{ selectedProduct.loadsRatesDeflection.solidHeight.value_mm }} ± {{ selectedProduct.loadsRatesDeflection.solidHeight.tolerance_mm }} mm</span></div>
+                <div *ngIf="selectedProduct.loadsRatesDeflection.lengthAtLoad1_mm" class="detail-item"><span class="label">Length @ Load1</span><span class="value">{{ selectedProduct.loadsRatesDeflection.lengthAtLoad1_mm }} mm</span></div>
+                <div *ngIf="selectedProduct.loadsRatesDeflection.load1_N" class="detail-item"><span class="label">Load 1</span><span class="value">{{ selectedProduct.loadsRatesDeflection.load1_N }} N</span></div>
+                <div *ngIf="selectedProduct.loadsRatesDeflection.lengthAtLoad2_mm" class="detail-item"><span class="label">Length @ Load2</span><span class="value">{{ selectedProduct.loadsRatesDeflection.lengthAtLoad2_mm }} mm</span></div>
+                <div *ngIf="selectedProduct.loadsRatesDeflection.load2_N" class="detail-item"><span class="label">Load 2</span><span class="value">{{ selectedProduct.loadsRatesDeflection.load2_N }} N</span></div>
+                <div *ngIf="selectedProduct.loadsRatesDeflection.deflectionAtLoad1_mm" class="detail-item"><span class="label">Deflection @ Load1</span><span class="value">{{ selectedProduct.loadsRatesDeflection.deflectionAtLoad1_mm }} mm</span></div>
+                <div *ngIf="selectedProduct.loadsRatesDeflection.deflectionAtLoad2_mm" class="detail-item"><span class="label">Deflection @ Load2</span><span class="value">{{ selectedProduct.loadsRatesDeflection.deflectionAtLoad2_mm }} mm</span></div>
+              </div>
+            </div>
+
+            <div class="detail-card">
+              <h4 class="section-title">Operating Conditions & Metadata</h4>
+              <div class="detail-grid two-cols">
+                <div class="detail-item"><span class="label">Operating Temp</span><span class="value">{{ selectedProduct.loadsRatesDeflection.operatingTemp_C ? (selectedProduct.loadsRatesDeflection.operatingTemp_C + ' °C') : '—' }}</span></div>
+                <div class="detail-item"><span class="label">Cycles</span><span class="value">{{ selectedProduct.loadsRatesDeflection.cycles || '—' }}</span></div>
+                <div class="detail-item"><span class="label">Surface Treatment</span><span class="value">{{ selectedProduct.loadsRatesDeflection.surfaceTreatment || '—' }}</span></div>
+                <div *ngIf="selectedProduct.loadsRatesDeflection.date" class="detail-item"><span class="label">Date</span><span class="value">{{ selectedProduct.loadsRatesDeflection.date }}</span></div>
+                <div *ngIf="selectedProduct.loadsRatesDeflection.prepBy" class="detail-item"><span class="label">Prepared By</span><span class="value">{{ selectedProduct.loadsRatesDeflection.prepBy }}</span></div>
+              </div>
+            </div>
+
+            <div *ngIf="selectedProduct.loadsRatesDeflection.remark" class="detail-card full-width">
+              <h4 class="section-title">Remarks</h4>
+              <div class="remark-box">{{ selectedProduct.loadsRatesDeflection.remark }}</div>
+            </div>
+
+              <!-- Product Images Section at the end for print -->
+          <div class="detail-card product-images-section print-images" *ngIf="selectedProduct.images.length">
+            <h4 class="section-title">Product Images</h4>
+            <div class="images-list">
+              <img *ngFor="let img of selectedProduct.images" [src]="img" alt="Product Image"
+                class="product-image print-image" style="width: 10%; height: 10%; margin: 5px;"
+                (mouseover)="magnify($event)" (mouseout)="resetImage($event)"
+                (mousedown)="minify($event)" (mouseup)="resetImage($event)">
+            </div>
+          </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeDetails()">Close</button>
+        <button class="btn-print" (click)="printToPDF()">🖨️ Print to PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+

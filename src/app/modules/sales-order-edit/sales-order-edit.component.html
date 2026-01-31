@@ -1,0 +1,165 @@
+<div class="sales-order-container">
+  <div class="header-section">
+    <h1>✏️ Edit Sales Order</h1>
+    <p class="header-subtitle">Update the sales order details and products</p>
+    <button class="action-btn secondary" (click)="cancelSalesOrder()">← Back to Sales Order Master</button>
+  </div>
+
+  <form [formGroup]="salesOrderForm" class="so-form">
+    <div class="form-section">
+      <div class="section-header">
+        <h2>📝 Sales Order Details</h2>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Sales Order ID (Auto)</label>
+          <input type="text" formControlName="salesOrderId" class="form-input" readonly>
+        </div>
+        <div class="form-group">
+          <label>Customer Name *</label>
+          <input type="text" formControlName="customerName" class="form-input" placeholder="Enter customer name">
+          <span class="error" *ngIf="salesOrderForm.get('customerName')?.errors?.['required']">Required</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Customer ID</label>
+          <input type="text" formControlName="customerId" class="form-input" placeholder="Optional">
+        </div>
+        <div class="form-group">
+          <label>Status *</label>
+          <select formControlName="status" class="form-input">
+            <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Created Date *</label>
+          <input type="date" formControlName="createdDate" class="form-input">
+          <span class="error" *ngIf="salesOrderForm.get('createdDate')?.errors?.['required']">Required</span>
+        </div>
+        <div class="form-group">
+          <label>Completion Target Date *</label>
+          <input type="date" formControlName="completionTargetDate" class="form-input">
+          <span class="error" *ngIf="salesOrderForm.get('completionTargetDate')?.errors?.['required']">Required</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label>Remarks</label>
+          <textarea formControlName="remarks" class="form-input" rows="3" placeholder="Enter any remarks or special instructions..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-header">
+        <h2>📦 Products</h2>
+        <button type="button" class="action-btn primary" (click)="openProductModal()">+ Add Product</button>
+      </div>
+      <div class="products-table-container" *ngIf="items.length > 0; else noProducts">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Item No</th>
+              <th>Product Name</th>
+              <th>Type</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Total Price</th>
+              <th>Job Card #</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of items; let idx = index">
+              <td>{{ item.itemSerialNo }}</td>
+              <td>{{ item.productName }}</td>
+              <td>{{ getProductTypeFullName(item.productType) }}</td>
+              <td>
+                <input type="number" [value]="item.quantity" (change)="updateItemQuantity(idx, +$event.target.value)" class="qty-input" min="1">
+              </td>
+              <td>
+                <input type="number" [value]="item.unitPrice" (change)="updateItemPrice(idx, +$event.target.value)" class="price-input" min="0">
+              </td>
+              <td>{{ item.totalPrice | number:'1.2-2' }}</td>
+              <td class="job-card">{{ item.jobCardNumber }}</td>
+              <td>
+                <button type="button" class="action-btn danger" (click)="removeProductFromOrder(idx)">Remove</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="order-summary">
+          <div class="summary-item">
+            <span>Total Items:</span>
+            <strong>{{ items.length }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>Total Quantity:</span>
+            <strong>{{ getTotalQuantity() }}</strong>
+          </div>
+          <div class="summary-item total">
+            <span>Total Amount:</span>
+            <strong>Rs. {{ getTotalOrderAmount() | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+      </div>
+      <ng-template #noProducts>
+        <div class="no-products">
+          <p>📭 No products added yet. Click "Add Product" to update your sales order.</p>
+        </div>
+      </ng-template>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="action-btn secondary" (click)="cancelSalesOrder()">Cancel</button>
+      <button type="button" class="action-btn primary" (click)="saveSalesOrder()" [disabled]="isSubmitting || items.length === 0">
+        {{ isSubmitting ? '⏳ Saving...' : '✓ Update Sales Order' }}
+      </button>
+    </div>
+  </form>
+
+  <div *ngIf="showProductModal" class="modal-overlay" (click)="closeProductModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>🔍 Add Products to Sales Order</h2>
+        <button class="close-btn action-btn danger" (click)="closeProductModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="search-section">
+          <div class="search-box">
+            <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyProductFilters()" class="search-input" placeholder="🔎 Search by product name or part number...">
+          </div>
+          <div class="filter-row">
+            <select [(ngModel)]="productFilterType" (ngModelChange)="applyProductFilters()" class="filter-select">
+              <option value="">All Product Types</option>
+              <option *ngFor="let type of getProductTypes()" [value]="type">{{ getProductTypeFullName(type) }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="products-list">
+          <div *ngIf="filteredProducts.length > 0; else noFiltered" class="products-grid">
+            <div *ngFor="let product of filteredProducts" class="product-card">
+              <div class="product-info">
+                <h4>{{ product.productName }}</h4>
+                <p class="product-details"><span class="label">Type:</span> {{ getProductTypeFullName(product.productType) }}</p>
+                <p class="product-details"><span class="label">Part No:</span> {{ product.general.symagPartNo }}</p>
+                <p class="product-details" *ngIf="product.materialAndDimensions && product.materialAndDimensions.materialType"><span class="label">Material:</span> {{ product.materialAndDimensions.materialType }}</p>
+              </div>
+              <button type="button" class="action-btn primary" (click)="addProductToOrder(product)">✓ Add</button>
+            </div>
+          </div>
+          <ng-template #noFiltered>
+            <div class="no-products-msg">
+              <p>🔍 No products found matching your search criteria.</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="action-btn secondary" (click)="closeProductModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

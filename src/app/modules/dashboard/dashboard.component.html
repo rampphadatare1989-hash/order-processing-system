@@ -1,0 +1,113 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="header-section">
+    <h1>Dashboard</h1>
+    <p class="subtitle">Welcome to Order Processing System</p>
+  </div>
+
+  <!-- Quick Action Links -->
+  <div class="quick-actions">
+    <h2>Quick Actions</h2>
+    <div class="action-buttons">
+      <button class="action-btn secondary" routerLink="/product-master">
+        <span class="btn-icon">📦</span>
+        <span class="btn-text">Product Master</span>
+      </button>
+      <button class="action-btn primary" routerLink="/sales-order-master">
+        <span class="btn-icon">📋</span>
+        <span class="btn-text">Sales Order Master</span>
+      </button>
+      
+    </div>
+  </div>
+
+
+  <!-- Progress Visualization Section -->
+  <div class="progress-section" *ngIf="!loading">
+    <h2>Order & Product Progress</h2>
+    <div class="progress-cards">
+      <div class="progress-card">
+        <h4>Total Orders</h4>
+        <div class="progress-value">{{ orderSummary?.totalOrders || 0 }}</div>
+      </div>
+      <div class="progress-card">
+        <h4>Completed Orders</h4>
+        <div class="progress-value completed">{{ orderSummary?.completedOrders || 0 }}</div>
+      </div>
+      <div class="progress-card">
+        <h4>Pending Orders</h4>
+        <div class="progress-value pending">{{ orderSummary?.pendingOrders || 0 }}</div>
+      </div>
+      <div class="progress-card">
+        <h4>In Production</h4>
+        <div class="progress-value in-production">{{ orderSummary?.inProductionOrders || 0 }}</div>
+      </div>
+      <div class="progress-card">
+        <h4>Cancelled Orders</h4>
+        <div class="progress-value cancelled">{{ orderSummary?.cancelledOrders || 0 }}</div>
+      </div>
+      <div class="progress-card">
+        <h4>Active Products</h4>
+        <div class="progress-value">{{ activeProductsCount }}</div>
+      </div>
+      <div class="progress-card">
+        <h4>Inactive Products</h4>
+        <div class="progress-value inactive">{{ inactiveProductsCount }}</div>
+      </div>
+      <div class="progress-card">
+        <h4>Archived Products</h4>
+        <div class="progress-value archived">{{ archivedProductsCount }}</div>
+      </div>
+    </div>
+
+    <div class="progress-details">
+      <h3>Orders by Status</h3>
+      <ul>
+        <li *ngFor="let s of orderSummary?.ordersByStatus">
+          <span class="status-label">{{ s.status }}</span>
+          <span class="status-count">{{ s.count }}</span>
+        </li>
+      </ul>
+      <h3>Orders by Product Type</h3>
+      <ul>
+        <li *ngFor="let t of orderSummary?.ordersByProductType">
+          <span class="type-label">{{ t.productType }}</span>
+          <span class="type-count">{{ t.count }}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Information Cards (existing) -->
+  <div class="info-cards">
+    <div class="info-card">
+      <h3>Sales Orders</h3>
+      <p>View, manage, and create sales orders with multiple products and auto-generated job cards.</p>
+      <button routerLink="/sales-order-master" class="btn-link">View Sales Orders →</button>
+    </div>
+    <div class="info-card">
+      <h3>Product Master</h3>
+      <p>View and manage your product catalog with detailed specifications and material information.</p>
+      <button routerLink="/product-master" class="btn-link">View Products →</button>
+    </div>
+    <div class="info-card">
+      <h3>Job Card Generation</h3>
+      <p>Automatically generate job card numbers (SO-ID/Item-No) and print job cards with product details.</p>
+      <button routerLink="/sales-order-create" class="btn-link">Create Order →</button>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <div class="features-section">
+    <h2>Features</h2>
+    <ul class="features-list">
+      <li>✓ Create sales orders with custom ID and dates</li>
+      <li>✓ Add multiple products to a single sales order</li>
+      <li>✓ Search and filter products by name, part number, and type</li>
+      <li>✓ Auto-generated job card numbers in format: Sales Order ID / Item Serial Number</li>
+      <li>✓ Editable quantity and pricing per line item</li>
+      <li>✓ Automatic total amount calculation</li>
+      <li>✓ Print-ready job cards with product details</li>
+    </ul>
+  </div>
+</div>

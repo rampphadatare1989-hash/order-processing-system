@@ -875,6 +875,26 @@ const products = [
 ];
 
 /**
+ * User data - Sample users for authentication
+ */
+const users = [
+  {
+    username: 'admin',
+    password: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', // SHA256 of 'admin123'
+    role: 'admin',
+    active: true,
+    email: 'admin@company.com'
+  },
+  {
+    username: 'user',
+    password: 'e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446', // SHA256 of 'user123'
+    role: 'user',
+    active: true,
+    email: 'user@company.com'
+  }
+];
+
+/**
  * Seed the Firestore database with sample data
  */
 async function seedDatabase() {
@@ -912,13 +932,21 @@ async function seedDatabase() {
     }
     console.log(`✅ Successfully added ${products.length} products\n`);
 
+    // Seed users
+    console.log('📝 Seeding users collection...');
+    for (const user of users) {
+      await db.collection('users').doc(user.username).set(user);
+    }
+    console.log(`✅ Successfully added ${users.length} users\n`);
+
     console.log('🎉 Firebase Firestore seeding completed successfully!');
     console.log('\n📊 Summary:');
     console.log(`   • Orders: ${orders.length}`);
     console.log(`   • Sales Orders: ${salesOrders.length}`);
     console.log(`   • Job Cards: ${jobCards.length}`);
     console.log(`   • Products: ${products.length}`);
-    console.log(`   • Total Documents: ${orders.length + salesOrders.length + jobCards.length + products.length}`);
+    console.log(`   • Users: ${users.length}`);
+    console.log(`   • Total Documents: ${orders.length + salesOrders.length + jobCards.length + products.length + users.length}`);
     console.log('\n✨ Your Firestore database is now populated with sample data!');
     console.log('   Start the application with: npm start\n');
 
@@ -934,7 +962,7 @@ async function seedDatabase() {
  */
 async function clearCollections() {
   console.log('🗑️  Clearing existing data...');
-  const collections = ['orders', 'salesOrders', 'jobCards', 'products'];
+  const collections = ['orders', 'salesOrders', 'jobCards', 'products', 'users'];
 
   for (const collectionName of collections) {
     const querySnapshot = await db.collection(collectionName).get();

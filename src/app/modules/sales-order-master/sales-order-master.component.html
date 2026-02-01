@@ -2,7 +2,7 @@
   <div class="header-section">
     <h1>📋 Sales Orders</h1>
     <p class="header-subtitle">Manage all your sales orders in one place</p>
-    <button class="action-btn primary" (click)="createNewOrder()">✓ Create New Sales Order</button>
+    <button class="action-btn primary" *ngIf="this.authService.isAdmin()" (click)="createNewOrder()">✓ Create New Sales Order</button>
   </div>
 
   <div class="master-content">
@@ -71,10 +71,10 @@
               <button class="action-btn small primary" (click)="viewOrder(order)" title="View">
                 👁️
               </button>
-              <button class="action-btn small secondary" (click)="editOrder(order)" title="Edit">
+              <button class="action-btn small secondary" *ngIf="this.authService.isAdmin()" (click)="editOrder(order)" title="Edit">
                 ✎
               </button>
-              <button class="action-btn small danger" (click)="confirmDelete(order)" title="Delete">
+              <button class="action-btn small danger" *ngIf="this.authService.isAdmin()" (click)="confirmDelete(order)" title="Delete">
                 🗑️
               </button>
             </td>

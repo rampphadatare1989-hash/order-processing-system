@@ -5,7 +5,7 @@ import { RouterModule, Router } from '@angular/router';
 import { SalesOrderService } from '../../services/sales-order.service';
 import { SalesOrder, SalesOrderItem } from '../../models/sales-order.model';
 import { JobCardDetailComponent } from './job-card-detail.component';
-
+import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-sales-order-master',
   standalone: true,
@@ -33,7 +33,8 @@ export class SalesOrderMasterComponent implements OnInit {
   constructor(
     private salesOrderService: SalesOrderService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {

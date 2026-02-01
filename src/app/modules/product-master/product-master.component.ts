@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Product } from '../../models/product.model';
 import { ProductService } from '../../services/product.service';
 import html2pdf from 'html2pdf.js';
-
+import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-product-master',
   standalone: true,
@@ -49,7 +49,8 @@ export class ProductMasterComponent implements OnInit {
   constructor(
     private productService: ProductService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+     public authService: AuthService
   ) {
     this.initializeForm();
   }

@@ -1,0 +1,61 @@
+<div class="user-management">
+  <h2>User Management</h2>
+  <button (click)="showAddForm()" class="add-btn">Add New User</button>
+
+  <div *ngIf="showForm" class="user-form">
+    <h3>{{ editingUser ? 'Edit User' : 'Add New User' }}</h3>
+    <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+      <div class="form-group">
+        <label>Username:</label>
+        <input type="text" formControlName="username" required>
+      </div>
+      <div class="form-group">
+        <label>Password:</label>
+        <input type="password" formControlName="password" [required]="!editingUser" placeholder="{{ editingUser ? 'Leave blank to keep current' : '' }}">
+      </div>
+      <div class="form-group">
+        <label>Role:</label>
+        <select formControlName="role">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" formControlName="active"> Active
+        </label>
+      </div>
+      <div class="form-group">
+        <label>Email (optional):</label>
+        <input type="email" formControlName="email">
+      </div>
+      <button type="submit" [disabled]="!userForm.valid">Save</button>
+      <button type="button" (click)="cancelEdit()">Cancel</button>
+    </form>
+  </div>
+
+  <table class="user-table">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Active</th>
+        <th>Email</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.username }}</td>
+        <td>{{ user.role }}</td>
+        <td>{{ user.active ? 'Yes' : 'No' }}</td>
+        <td>{{ user.email || '-' }}</td>
+        <td>
+          <button (click)="editUser(user)">Edit</button>
+          <button (click)="toggleActive(user)">{{ user.active ? 'Deactivate' : 'Activate' }}</button>
+          <button (click)="deleteUser(user)" class="delete-btn">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

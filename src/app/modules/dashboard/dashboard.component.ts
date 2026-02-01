@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { OrderService } from '../../services/order.service';
 import { ProductService } from '../../services/product.service';
+import { AuthService } from '../../services/auth.service';
 import { OrderSummary } from '../../models/spring-part.model';
 import { Product } from '../../models/product.model';
 import { CommonModule } from '@angular/common';
@@ -18,7 +19,7 @@ export class DashboardComponent implements OnInit {
   products: Product[] = [];
   loading = true;
 
-  constructor(private orderService: OrderService, private productService: ProductService) {}
+  constructor(private orderService: OrderService, private productService: ProductService, public authService: AuthService) {}
 
   ngOnInit(): void {
     this.orderService.getOrderSummary().subscribe(summary => {

@@ -2,7 +2,7 @@
   <!-- Header Section -->
   <div class="header-section">
     <h1>Product Master</h1>
-    <button class="btn-primary" (click)="openCreateModal()">+ Add New Product</button>
+    <button class="btn-primary" *ngIf="this.authService.isAdmin()" (click)="openCreateModal()">+ Add New Product</button>
   </div>
 
   <!-- Filter and Search Section -->
@@ -68,8 +68,8 @@
           <td>
             <div class="action-buttons">
               <button class="btn-secondary" (click)="viewDetails(product)" title="View Details">View</button>
-              <button class="btn-warning" (click)="openEditModal(product)" title="Edit Product">Edit</button>
-              <button class="btn-danger" (click)="deleteProduct(product)" title="Delete Product">Delete</button>
+              <button class="btn-warning" *ngIf="this.authService.isAdmin()" (click)="openEditModal(product)" title="Edit Product">Edit</button>
+              <button class="btn-danger" *ngIf="this.authService.isAdmin()" (click)="deleteProduct(product)" title="Delete Product">Delete</button>
             </div>
           </td>
         </tr>
@@ -657,10 +657,10 @@
             </div>
 
               <!-- Product Images Section at the end for print -->
-          <div class="detail-card product-images-section print-images" *ngIf="selectedProduct?.images?.length">
+          <div class="detail-card product-images-section print-images" *ngIf="selectedProduct.images?.length">
             <h4 class="section-title">Product Images</h4>
             <div class="images-list">
-              <img *ngFor="let img of selectedProduct?.images" [src]="img" alt="Product Image"
+              <img *ngFor="let img of selectedProduct.images" [src]="img" alt="Product Image"
                 class="product-image print-image" style="width: 10%; height: 10%; margin: 5px;"
                 (mouseover)="magnify($event)" (mouseout)="resetImage($event)"
                 (mousedown)="minify($event)" (mouseup)="resetImage($event)">

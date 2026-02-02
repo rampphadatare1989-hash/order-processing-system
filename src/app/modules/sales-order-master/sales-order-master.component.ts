@@ -1,15 +1,16 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { SalesOrderService } from '../../services/sales-order.service';
 import { SalesOrder, SalesOrderItem } from '../../models/sales-order.model';
 import { JobCardDetailComponent } from './job-card-detail.component';
+import { PDIReportComponent } from './pdi-report.component';
 import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-sales-order-master',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, JobCardDetailComponent],
+  imports: [CommonModule, FormsModule, RouterModule, JobCardDetailComponent, PDIReportComponent],
   templateUrl: './sales-order-master.component.html',
   styleUrls: ['./sales-order-master.component.scss']
 })
@@ -25,6 +26,7 @@ export class SalesOrderMasterComponent implements OnInit {
   selectedOrder: SalesOrder | null = null;
   selectedOrderItem: SalesOrderItem | null = null;
   orderToDelete: SalesOrder | null = null;
+  showPDIReport = false;
 
   statusOptions = ['DRAFT', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
   sortBy = 'createdDate';
@@ -33,12 +35,20 @@ export class SalesOrderMasterComponent implements OnInit {
   constructor(
     private salesOrderService: SalesOrderService,
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     public authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.loadSalesOrders();
+
+    // Check for job card search parameters
+    this.route.queryParams.subscribe(params => {
+      if (params['orderId'] && params['itemSerialNo']) {
+        this.handleJobCardSearch(params['orderId'], parseInt(params['itemSerialNo'], 10), params['highlightJobCard']);
+      }
+    });
   }
 
   /**
@@ -184,6 +194,25 @@ export class SalesOrderMasterComponent implements OnInit {
   }
 
   /**
+   * Handle open PDI report request from job card detail
+   */
+  onOpenPDIReport(): void {
+    this.closeJobCardDetail();
+    // Open PDI report after a short delay to ensure modal closes first
+    setTimeout(() => {
+      this.showPDIReport = true;
+    }, 100);
+  }
+
+  /**
+   * Close PDI report modal
+   */
+  closePDIReport(): void {
+    this.showPDIReport = false;
+    this.closeJobCardDetail();
+  }
+
+  /**
    * Edit sales order
    */
   editOrder(order: SalesOrder): void {
@@ -256,5 +285,47 @@ export class SalesOrderMasterComponent implements OnInit {
       'CANCELLED': '#f44336'
     };
     return colors[status] || '#999';
+  }
+
+  /**
+   * Handle job card search from dashboard
+   */
+  private handleJobCardSearch(orderId: string, itemSerialNo: number, highlightJobCard?: string): void {
+    // Wait for sales orders to load, then find and open the specific job card
+    const checkOrdersLoaded = () => {
+      const targetOrder = this.salesOrders.find(order => order.id === orderId);
+      if (targetOrder) {
+        const targetItem = targetOrder.items?.find(item => item.itemSerialNo === itemSerialNo);
+        if (targetItem) {
+          // Clear query parameters
+          this.router.navigate([], { queryParams: {} });
+
+          // Open the job card detail
+          this.selectedOrder = targetOrder;
+          this.selectedOrderItem = targetItem;
+          this.showJobCardDetail = true;
+
+          // Scroll to the job card section if highlightJobCard is provided
+          if (highlightJobCard) {
+            setTimeout(() => {
+              const jobCardElement = document.querySelector('.job-card-detail');
+              if (jobCardElement) {
+                jobCardElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Add a temporary highlight effect
+                jobCardElement.classList.add('highlight-job-card');
+                setTimeout(() => {
+                  jobCardElement.classList.remove('highlight-job-card');
+                }, 3000);
+              }
+            }, 500);
+          }
+        }
+      } else {
+        // If orders not loaded yet, wait a bit and try again
+        setTimeout(checkOrdersLoaded, 100);
+      }
+    };
+
+    checkOrdersLoaded();
   }
 }

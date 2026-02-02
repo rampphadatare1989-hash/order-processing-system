@@ -7,7 +7,27 @@
   <div class="nav-actions">
     <span *ngIf="authService.isAdmin()" class="role-badge">Admin</span>
     <span *ngIf="authService.isUser()" class="role-badge">User</span>
-    <button (click)="logout()" class="btn-logout btn-secondary"  routerLinkActive="active">Logout</button>
+    <button (click)="logout()" class="btn-logout btn-secondary" routerLinkActive="active">Logout</button>
+  </div>
+
+  <!-- Mobile hamburger menu -->
+  <div class="hamburger" [class.open]="isMobileMenuOpen" (click)="toggleMobileMenu()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <!-- Mobile menu overlay -->
+  <div class="mobile-menu" [class.open]="isMobileMenuOpen">
+    <ul class="nav-links">
+      <li><a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()">Dashboard</a></li>
+      <li *ngIf="authService.isAdmin()"><a routerLink="/user-management" routerLinkActive="active" (click)="closeMobileMenu()">User Management</a></li>
+    </ul>
+    <div class="nav-actions">
+      <span *ngIf="authService.isAdmin()" class="role-badge">Admin</span>
+      <span *ngIf="authService.isUser()" class="role-badge">User</span>
+      <button (click)="logout()" class="btn-logout btn-secondary" (click)="closeMobileMenu()">Logout</button>
+    </div>
   </div>
 </nav>
 <main>

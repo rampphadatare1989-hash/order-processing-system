@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc, orderBy, QuerySnapshot, DocumentData, provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
-import { SalesOrder } from '../models/sales-order.model';
+import { SalesOrder, SalesOrderItem } from '../models/sales-order.model';
 
 @Injectable({
   providedIn: 'root'
@@ -101,5 +101,55 @@ export class SalesOrderService {
     const snapshot = await getDocs(collection(this.firestore, this.salesOrdersCollection));
     const count = snapshot.size + 1;
     return `SO-${String(count).padStart(4, '0')}`;
+  }
+
+  /**
+   * Search for job card by job card number
+   * Job card format: {salesOrderId}/{itemSerialNo} (e.g., "SO-001/1")
+   */
+  searchJobCardById(jobCardNumber: string): Observable<{salesOrder: SalesOrder, item: SalesOrderItem} | null> {
+    return from(
+      (async () => {
+        // Parse job card number (format: SO-XXX/YY)
+        const parts = jobCardNumber.split('/');
+        if (parts.length !== 2) {
+          return null;
+        }
+
+        const salesOrderId = parts[0];
+        const itemSerialNo = parseInt(parts[1], 10);
+
+        if (isNaN(itemSerialNo)) {
+          return null;
+        }
+
+        // Find the sales order
+        const salesOrderSnapshot = await getDocs(
+          query(
+            collection(this.firestore, this.salesOrdersCollection),
+            where('salesOrderId', '==', salesOrderId)
+          )
+        );
+
+        if (salesOrderSnapshot.empty) {
+          return null;
+        }
+
+        const salesOrderDoc = salesOrderSnapshot.docs[0];
+        const salesOrder: SalesOrder = {
+          id: salesOrderDoc.id,
+          ...(salesOrderDoc.data() as SalesOrder)
+        };
+
+        // Find the specific item in the sales order
+        const item = salesOrder.items?.find(item => item.itemSerialNo === itemSerialNo);
+
+        if (!item) {
+          return null;
+        }
+
+        return { salesOrder, item };
+      })()
+    );
   }
 }

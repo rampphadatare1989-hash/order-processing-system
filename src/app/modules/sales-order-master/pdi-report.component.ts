@@ -1,11 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { SalesOrderItem } from '../../models/sales-order.model';
 
 @Component({
   selector: 'app-pdi-report',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="pdi-report-container">
       <button class="btn-generate-pdi" (click)="openPDIReport()" title="View PDI Report">
@@ -18,8 +19,8 @@ import { SalesOrderItem } from '../../models/sales-order.model';
           <div class="modal-header">
             <h2>PDI Report</h2>
             <div class="header-actions">
-              <button class="btn-print" (click)="printReport()" title="Print Report">🖨️ Print</button>
-              <button class="close-btn" (click)="closePDIReport()">✕</button>
+              
+              <button class="close-btn"  (click)="closePDIReport()">✕</button>
             </div>
           </div>
 
@@ -117,11 +118,11 @@ import { SalesOrderItem } from '../../models/sales-order.model';
                       <td>{{ item.product?.materialAndDimensions?.wireDia?.value_mm }}</td>
                       <td>{{ '-' }}</td>
                       <td>{{ '+' }}{{ item.product?.materialAndDimensions?.wireDia?.tolerance_mm }}</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
+                      <td><input type="text" [(ngModel)]="observedValues['wireDia'][0]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['wireDia'][1]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['wireDia'][2]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['wireDia'][3]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['wireDia'][4]" class="observed-input"></td>
                     </tr>
 
                     <!-- Mean Coil Diameter -->
@@ -132,11 +133,11 @@ import { SalesOrderItem } from '../../models/sales-order.model';
                       <td>{{ item.product?.materialAndDimensions?.meanDia?.value_mm }}</td>
                       <td>{{ '-' }}</td>
                       <td>{{ '+' }}{{ item.product?.materialAndDimensions?.meanDia?.tolerance_mm }}</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
+                      <td><input type="text" [(ngModel)]="observedValues['meanDia'][0]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['meanDia'][1]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['meanDia'][2]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['meanDia'][3]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['meanDia'][4]" class="observed-input"></td>
                     </tr>
 
                     <!-- Outer Diameter -->
@@ -147,11 +148,11 @@ import { SalesOrderItem } from '../../models/sales-order.model';
                       <td>{{ item.product?.materialAndDimensions?.outsideDia?.value_mm }}</td>
                       <td>{{ '-' }}</td>
                       <td>{{ '+' }}{{ item.product?.materialAndDimensions?.outsideDia?.tolerance_mm }}</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
+                      <td><input type="text" [(ngModel)]="observedValues['outsideDia'][0]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['outsideDia'][1]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['outsideDia'][2]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['outsideDia'][3]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['outsideDia'][4]" class="observed-input"></td>
                     </tr>
 
                     <!-- Inside Diameter -->
@@ -162,11 +163,11 @@ import { SalesOrderItem } from '../../models/sales-order.model';
                       <td>{{ item.product?.materialAndDimensions?.insideDia?.value_mm }}</td>
                       <td>{{ '-' }}</td>
                       <td>{{ '+' }}{{ item.product?.materialAndDimensions?.insideDia?.tolerance_mm }}</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
+                      <td><input type="text" [(ngModel)]="observedValues['insideDia'][0]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['insideDia'][1]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['insideDia'][2]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['insideDia'][3]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['insideDia'][4]" class="observed-input"></td>
                     </tr>
 
                     <!-- Total Coils -->
@@ -177,11 +178,11 @@ import { SalesOrderItem } from '../../models/sales-order.model';
                       <td>{{ item.product?.materialAndDimensions?.totalCoils }}</td>
                       <td>{{ '-' }}</td>
                       <td>{{ '-' }}</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
+                      <td><input type="text" [(ngModel)]="observedValues['totalCoils'][0]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['totalCoils'][1]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['totalCoils'][2]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['totalCoils'][3]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['totalCoils'][4]" class="observed-input"></td>
                     </tr>
 
                     <!-- Free Length -->
@@ -192,11 +193,11 @@ import { SalesOrderItem } from '../../models/sales-order.model';
                       <td>{{ item.product?.materialAndDimensions?.freeLength?.value_mm }}</td>
                       <td>{{ '-' }}</td>
                       <td>{{ '+' }}{{ item.product?.materialAndDimensions?.freeLength?.tolerance_mm }}</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
+                      <td><input type="text" [(ngModel)]="observedValues['freeLength'][0]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['freeLength'][1]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['freeLength'][2]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['freeLength'][3]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['freeLength'][4]" class="observed-input"></td>
                     </tr>
 
                     <!-- Spring Rate -->
@@ -207,11 +208,11 @@ import { SalesOrderItem } from '../../models/sales-order.model';
                       <td>{{ item.product?.loadsRatesDeflection?.springRate?.value_N_per_mm }}</td>
                       <td>{{ '-' }}</td>
                       <td>{{ '+' }}{{ item.product?.loadsRatesDeflection?.springRate?.tolerance_N_per_mm }}</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
+                      <td><input type="text" [(ngModel)]="observedValues['springRate'][0]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['springRate'][1]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['springRate'][2]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['springRate'][3]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['springRate'][4]" class="observed-input"></td>
                     </tr>
 
                     <!-- Additional rows for observations -->
@@ -222,11 +223,11 @@ import { SalesOrderItem } from '../../models/sales-order.model';
                       <td>-</td>
                       <td>-</td>
                       <td>-</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
+                      <td><input type="text" [(ngModel)]="observedValues['grinding'][0]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['grinding'][1]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['grinding'][2]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['grinding'][3]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['grinding'][4]" class="observed-input"></td>
                     </tr>
 
                     <tr>
@@ -236,11 +237,11 @@ import { SalesOrderItem } from '../../models/sales-order.model';
                       <td>-</td>
                       <td>-</td>
                       <td>-</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
+                      <td><input type="text" [(ngModel)]="observedValues['burr'][0]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['burr'][1]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['burr'][2]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['burr'][3]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['burr'][4]" class="observed-input"></td>
                     </tr>
 
                     <tr>
@@ -250,11 +251,11 @@ import { SalesOrderItem } from '../../models/sales-order.model';
                       <td>-</td>
                       <td>-</td>
                       <td>-</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
+                      <td><input type="text" [(ngModel)]="observedValues['surface'][0]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['surface'][1]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['surface'][2]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['surface'][3]" class="observed-input"></td>
+                      <td><input type="text" [(ngModel)]="observedValues['surface'][4]" class="observed-input"></td>
                     </tr>
 
                     <tr>
@@ -620,6 +621,22 @@ import { SalesOrderItem } from '../../models/sales-order.model';
                   font-weight: 600;
                   width: 50px;
                 }
+
+                .observed-input {
+                  width: 100%;
+                  border: none;
+                  background: #f5f5f5;
+                  border: 1px solid #ced4da;
+                  text-align: center;
+                  font-size: 11px;
+                  padding: 2px;
+                  outline: none;
+
+                  &:focus {
+                    background: #fff;
+                    border: 1px solid #007bff;
+                  }
+                }
               }
             }
           }
@@ -731,11 +748,34 @@ export class PDIReportComponent {
   @Input() item: any;
   showPDIReport = false;
 
+  // Observed values for each parameter and measurement (1-5)
+  observedValues: { [key: string]: string[] } = {
+    wireDia: ['', '', '', '', ''],
+    meanDia: ['', '', '', '', ''],
+    outsideDia: ['', '', '', '', ''],
+    insideDia: ['', '', '', '', ''],
+    freeLength: ['', '', '', '', ''],
+    totalCoils: ['', '', '', '', ''],
+    activeCoils: ['', '', '', '', ''],
+    springRate: ['', '', '', '', ''],
+    loadAtSolidHeight: ['', '', '', '', ''],
+    solidHeight: ['', '', '', '', ''],
+    squareness: ['', '', '', '', ''],
+    parallelism: ['', '', '', '', ''],
+    perpendicularity: ['', '', '', '', ''],
+    hardness: ['', '', '', '', ''],
+    surfaceFinish: ['', '', '', '', ''],
+    grinding: ['', '', '', '', ''],
+    burr: ['', '', '', '', ''],
+    surface: ['', '', '', '', '']
+  };
+
   openPDIReport(): void {
     this.showPDIReport = true;
   }
 
   closePDIReport(): void {
+    console.log('Closing PDI Report Modal');
     this.showPDIReport = false;
   }
 
@@ -743,11 +783,58 @@ export class PDIReportComponent {
     const printContent = document.getElementById('pdi-report-print');
     if (!printContent) return;
 
+    // Clone the content to avoid modifying the original
+    const clonedContent = printContent.cloneNode(true) as HTMLElement;
+
+    // Replace input fields with their current values for printing
+    const inputs = clonedContent.querySelectorAll('.observed-input');
+    inputs.forEach((input) => {
+      const inputElement = input as HTMLInputElement;
+      const value = inputElement.value || '';
+      const span = document.createElement('span');
+      span.textContent = value;
+      span.style.display = 'inline-block';
+      span.style.width = '100%';
+      span.style.textAlign = 'center';
+      input.parentNode?.replaceChild(span, input);
+    });
+
+    // Store original content
     const originalContent = document.body.innerHTML;
-    document.body.innerHTML = printContent.innerHTML;
-    window.print();
-    document.body.innerHTML = originalContent;
-    location.reload();
+
+    // Replace body content for printing
+    document.body.innerHTML = clonedContent.innerHTML;
+
+    // Use a timeout to ensure print dialog is handled properly
+    setTimeout(() => {
+      // Open the print dialog first
+      window.print();
+
+      // Listen for afterprint event to restore content and close modal
+      const afterPrintHandler = () => {
+        document.body.innerHTML = originalContent;
+        window.removeEventListener('afterprint', afterPrintHandler);
+        // Force Angular change detection
+        this.showPDIReport = this.showPDIReport;
+        // Close the modal after printing is complete
+        this.closePDIReport();
+      };
+
+      // Also handle immediate restoration for cancel case
+      const restoreContent = () => {
+        document.body.innerHTML = originalContent;
+        window.removeEventListener('afterprint', afterPrintHandler);
+        // Force Angular change detection
+        this.showPDIReport = this.showPDIReport;
+        // Close the modal after canceling print
+        this.closePDIReport();
+      };
+
+      window.addEventListener('afterprint', afterPrintHandler);
+
+      // Fallback: restore content after a short delay in case afterprint doesn't fire
+      setTimeout(restoreContent, 1000);
+    }, 100);
   }
 
   getCurrentDate(): string {

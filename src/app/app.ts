@@ -14,10 +14,20 @@ import { Router } from '@angular/router';
 export class App {
   protected readonly title = signal('Order-Processing-System');
 
+  isMobileMenuOpen = false;
+
   constructor(public authService: AuthService, private router: Router) {}
 
   async logout() {
     await this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
   }
 }

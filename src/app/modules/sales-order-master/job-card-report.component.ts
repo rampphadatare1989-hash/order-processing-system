@@ -18,7 +18,6 @@ import { SalesOrderItem } from '../../models/sales-order.model';
           <div class="modal-header">
             <h2>Job Card Detailed Report</h2>
             <div class="header-actions">
-              <button class="btn-print" (click)="printReport()" title="Print Report">🖨️ Print</button>
               <button class="close-btn" (click)="closeJobCardReport()">✕</button>
             </div>
           </div>

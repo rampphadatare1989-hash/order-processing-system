@@ -1,0 +1,50 @@
+<div class="job-card-search">
+  <h3>Quick Job Card Search</h3>
+  <p class="search-description">Search for job cards by job card number (e.g., SO-001/1)</p>
+  <div class="search-input-group">
+    
+    <input
+      type="text"
+      [(ngModel)]="jobCardSearchTerm"
+      (keypress)="onJobCardSearchKeyPress($event)"
+      placeholder="Enter job card number (SO-XXX/YY)"
+      class="job-card-search-input"
+      [disabled]="isSearchingJobCard">
+    <button
+      class="btn-search-job-card"
+      (click)="searchJobCard()"
+      [disabled]="isSearchingJobCard || !jobCardSearchTerm.trim()">
+      <span *ngIf="!isSearchingJobCard">🔍 Search</span>
+      <span *ngIf="isSearchingJobCard">⏳ Searching...</span>
+    </button>
+    <br>
+
+  <!-- Job Card Detail Modal -->
+  <div *ngIf="showJobCardDetail && selectedOrderItem" class="modal-overlay" (click)="closeJobCardDetail()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>🏷️ Job Card Details</h2>
+        <button class="close-btn action-btn danger" (click)="closeJobCardDetail()">✕</button>
+      </div>
+      <div class="modal-body">
+        <app-job-card-detail [item]="selectedOrderItem"></app-job-card-detail>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn secondary" (click)="closeJobCardDetail()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+  <div class="search-result" *ngIf="searchResult">
+    <h4>Search Result:</h4>
+    <div class="result-card">
+      <div class="result-info">
+        <p><strong>Sales Order ID:</strong> {{ searchResult.item.itemSerialNo }}</p>
+        <p><strong>Job Card Number:</strong> {{ searchResult.item.jobCardNumber }}</p>
+        <p><strong>Product Name:</strong> {{ searchResult.item.productName }}</p>
+        <p><strong>Quantity:</strong> {{ searchResult.item.quantity }}</p>
+        <p><strong>Order Status:</strong> {{ searchResult.salesOrder.status }}</p>
+      </div>
+      <button class="action-btn primary" (click)="viewJobCardDetails()">👁️ View Details</button>
+    </div>
+  </div>

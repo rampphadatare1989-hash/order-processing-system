@@ -6,11 +6,12 @@ import { OrderSummary } from '../../models/spring-part.model';
 import { Product } from '../../models/product.model';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { JobCardSearchComponent } from './job-card-search.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, JobCardSearchComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -19,7 +20,11 @@ export class DashboardComponent implements OnInit {
   products: Product[] = [];
   loading = true;
 
-  constructor(private orderService: OrderService, private productService: ProductService, public authService: AuthService) {}
+  constructor(
+    private orderService: OrderService,
+    private productService: ProductService,
+    public authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.orderService.getOrderSummary().subscribe(summary => {

@@ -628,4 +628,153 @@ $shadow-heavy: 0 8px 32px rgba(0, 0, 0, 0.15);
       }
     }
   }
+
+  @media (max-width: 480px) {
+    .sales-order-master-container {
+      padding: 12px;
+    }
+
+    .header-section {
+      margin-bottom: 24px;
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .header-subtitle {
+        font-size: 14px;
+      }
+
+      .action-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 16px;
+      }
+    }
+
+    .filters-section {
+      .filter-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+
+        .filter-group {
+          .filter-label {
+            font-size: 14px;
+          }
+
+          .filter-input, .filter-select {
+            padding: 12px;
+            font-size: 16px; // Prevent zoom on iOS
+          }
+        }
+      }
+    }
+
+    .orders-grid {
+      .orders-table {
+        font-size: 12px;
+
+        th, td {
+          padding: 8px 6px;
+        }
+
+        .status-badge {
+          padding: 4px 8px;
+          font-size: 11px;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+          gap: 4px;
+
+          .action-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+          }
+        }
+      }
+    }
+
+    .pagination-section {
+      .pagination-controls {
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+
+        .pagination-info {
+          font-size: 14px;
+        }
+
+        .pagination-btn {
+          padding: 8px 16px;
+          font-size: 14px;
+        }
+      }
+    }
+
+    .modal-overlay {
+      .modal-content {
+        width: 95%;
+        margin: 10px;
+        max-height: 85vh;
+
+        .modal-header {
+          padding: 12px 16px;
+
+          h2 {
+            font-size: 16px;
+          }
+        }
+
+        .modal-body {
+          padding: 12px 16px;
+
+          .order-details {
+            .detail-row {
+              gap: 8px;
+
+              .detail-label {
+                font-size: 14px;
+              }
+
+              .detail-value {
+                font-size: 14px;
+              }
+            }
+          }
+        }
+
+        .modal-footer {
+          padding: 12px 16px;
+
+          .action-btn {
+            padding: 12px;
+            font-size: 16px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Job Card Highlight Animation for Search Results
+.job-card-detail.highlight-job-card {
+  animation: highlightPulse 3s ease-in-out;
+  border: 2px solid #ff9800 !important;
+  box-shadow: 0 0 20px rgba(255, 152, 0, 0.3) !important;
+}
+
+@keyframes highlightPulse {
+  0% {
+    border-color: #ff9800;
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.3);
+  }
+  50% {
+    border-color: #ff5722;
+    box-shadow: 0 0 30px rgba(255, 87, 34, 0.5);
+  }
+  100% {
+    border-color: #ff9800;
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.3);
+  }
 }

@@ -208,10 +208,26 @@
         <button class="close-btn action-btn danger" (click)="closeJobCardDetail()">✕</button>
       </div>
       <div class="modal-body">
-        <app-job-card-detail [item]="selectedOrderItem"></app-job-card-detail>
+        <app-job-card-detail [item]="selectedOrderItem" (openPDIReport)="onOpenPDIReport()"></app-job-card-detail>
       </div>
       <div class="modal-footer">
         <button class="action-btn secondary" (click)="closeJobCardDetail()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PDI Report Modal -->
+  <div *ngIf="showPDIReport && selectedOrderItem" class="modal-overlay" (click)="closePDIReport()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>📋 PDI Report</h2>
+        <button class="close-btn action-btn danger" (click)="closePDIReport()">✕</button>
+      </div>
+      <div class="modal-body">
+        <app-pdi-report [item]="selectedOrderItem"></app-pdi-report>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn secondary" (click)="closePDIReport()">Close</button>
       </div>
     </div>
   </div>
